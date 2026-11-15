@@ -7,7 +7,6 @@ import {
   powerMonitor,
   protocol,
 } from "electron";
-import updater from "electron-updater";
 import i18n from "i18next";
 import path from "node:path";
 import url from "node:url";
@@ -68,16 +67,6 @@ crashReporter.start({
   uploadToServer: false,
 });
 
-const { autoUpdater } = updater;
-
-autoUpdater.setFeedURL({
-  provider: "github",
-  owner: "hydralauncher",
-  repo: "hydra",
-});
-
-autoUpdater.logger = logger;
-
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) app.quit();
 
@@ -97,7 +86,7 @@ i18n.init({
   },
 });
 
-const PROTOCOL = "hydralauncher";
+const PROTOCOL = "highhydra";
 
 // Register the custom schemes as privileged so the renderer can fetch them
 // (supportFetchAPI) and use the results on a canvas without tainting it
@@ -125,7 +114,7 @@ if (process.defaultApp) {
 
 const initializeApp = async () => {
   refreshPortableShortcutLauncher();
-  electronApp.setAppUserModelId("gg.hydralauncher.hydra");
+  electronApp.setAppUserModelId("local.highhydra.launcher");
 
   logger.info("Crash dumps directory", app.getPath("crashDumps"));
 
@@ -232,7 +221,7 @@ const initializeApp = async () => {
 
   // Check if starting from a "run" deep link - don't show main window in that case
   const deepLinkArg = process.argv.find((arg) =>
-    arg.startsWith("hydralauncher://")
+    arg.startsWith(`${PROTOCOL}://`)
   );
   const forceBigPicture = process.argv.includes("--big-picture");
 
@@ -413,9 +402,7 @@ const handleDeepLinkPath = (uri?: string) => {
 };
 
 app.on("second-instance", (_event, commandLine) => {
-  const deepLink = commandLine.find((arg) =>
-    arg.startsWith("hydralauncher://")
-  );
+  const deepLink = commandLine.find((arg) => arg.startsWith(`${PROTOCOL}://`));
   const forceBigPicture = commandLine.includes("--big-picture");
 
   // Check if this is a "run" deep link - don't show main window in that case

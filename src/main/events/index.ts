@@ -1,4 +1,6 @@
 import { appVersion, defaultDownloadsPath, isStaging } from "@main/constants";
+import { getHighballRunner } from "@main/services/highball-runner";
+import type { GameShop } from "@types";
 import { ipcMain } from "electron";
 import { ScreenshotService } from "@main/services/screenshot";
 import {
@@ -39,7 +41,11 @@ import "./screenshot-input";
 ipcMain.handle("ping", () => "pong");
 ipcMain.handle("getVersion", () => appVersion);
 ipcMain.handle("isStaging", () => isStaging);
-ipcMain.handle("getDefaultDownloadsPath", () => defaultDownloadsPath);
+ipcMain.handle("getDefaultDownloadsPath", async (_event, shop?: GameShop) =>
+  process.platform === "darwin" && shop && shop !== "launchbox"
+    ? (await getHighballRunner()).home
+    : defaultDownloadsPath
+);
 ipcMain.handle("getScreenshotsPath", () =>
   ScreenshotService.getScreenshotsPath()
 );

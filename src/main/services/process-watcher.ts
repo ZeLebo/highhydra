@@ -1,3 +1,7 @@
+import {
+  getHighballRunner,
+  highballBottleName,
+} from "@main/services/highball-runner";
 import { getHydraPlaytimeRevision } from "./library-sync/library-write-queue";
 import type { HydraApiAuthContext } from "./hydra-auth-context";
 import {
@@ -418,6 +422,23 @@ export const watchProcesses = async () => {
       matchedPath = executablePath;
     }
 
+    if (
+      platform === "darwin" &&
+      path.basename(game.winePrefixPath ?? "") === highballBottleName(gameKey)
+    ) {
+      try {
+        if (!systemProcessMap.processTree) continue;
+        matchedPath = (await (
+          await getHighballRunner()
+        ).isRunning(gameKey, systemProcessMap.processTree, matchPaths))
+          ? executablePath
+          : undefined;
+      } catch (error) {
+        logger.warn("Highball process inspection failed", error);
+        continue;
+      }
+    }
+
     if (game.shop === "epic") {
       const managed = await getManagedEpicProcessMatch(
         gameKey,
@@ -530,11 +551,11 @@ async function onOpenGame(game: Game, matchedPath: string) {
 
   void onScreenshotGameStarted(gameKey);
 
+  markGameLauncherGameDetected(gameKey);
+
   // On Linux, keep the launcher visible briefly and let it auto-close itself.
   if (process.platform !== "linux") {
     WindowManager.closeGameLauncherWindow();
-  } else {
-    markGameLauncherGameDetected(gameKey);
   }
 
   // Hide Hydra to tray on game startup if enabled

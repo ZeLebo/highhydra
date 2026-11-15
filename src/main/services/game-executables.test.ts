@@ -32,6 +32,13 @@ describe("game executable catalogue", () => {
     });
   });
 
+  it("keeps Windows executables on macOS for Highball", () => {
+    assert.deepEqual(normalizeGameExecutableCatalog(catalog, "darwin"), {
+      "10": [{ name: "folder/game.exe", exe: "game.exe" }],
+      "20": [{ name: "other/tool.exe", exe: "tool.exe" }],
+    });
+  });
+
   it("retries a failed load and caches the successful catalogue", async () => {
     const store = new GameExecutableCatalogStore("linux");
     let calls = 0;

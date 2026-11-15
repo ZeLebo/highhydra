@@ -1,3 +1,4 @@
+import { prepareHighballDownload } from "@main/helpers/prepare-highball-download";
 import { registerEvent } from "../register-event";
 import type { Download, StartGameDownloadPayload } from "@types";
 import {
@@ -26,6 +27,7 @@ const addGameToQueue = async (
     title,
     shop,
     downloadPath,
+    useHighball,
     downloader,
     uri,
     parts,
@@ -51,6 +53,7 @@ const addGameToQueue = async (
       progress: 0,
       bytesDownloaded: 0,
       downloadPath,
+      useHighball,
       downloader,
       uri,
       parts: await getMultipartDownloadParts(uri, parts, downloader),
@@ -72,6 +75,7 @@ const addGameToQueue = async (
       await DownloadOrchestrator.validateDownloadOrMarkPending(download);
     }
     await prepareGameEntry({ gameKey, title, objectId, shop });
+    await prepareHighballDownload(download);
     await DownloadManager.cancelDownload(gameKey).catch(() => null);
   } catch (err: unknown) {
     if (isKnownDownloadError(err)) {

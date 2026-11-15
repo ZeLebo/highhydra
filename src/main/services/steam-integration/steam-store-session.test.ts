@@ -16,14 +16,11 @@ import {
 } from "./steam-store-session-config.ts";
 
 describe("isSteamOpenIdSuccessUrl", () => {
-  it("accepts the Hydra deep link with and without query", () => {
-    assert.equal(
-      isSteamOpenIdSuccessUrl("hydralauncher://steam-connected"),
-      true
-    );
+  it("accepts the HighHydra deep link with and without query", () => {
+    assert.equal(isSteamOpenIdSuccessUrl("highhydra://steam-connected"), true);
     assert.equal(
       isSteamOpenIdSuccessUrl(
-        "hydralauncher://steam-connected?lng=en&oauth_linked_provider=steam"
+        "highhydra://steam-connected?lng=en&oauth_linked_provider=steam"
       ),
       true
     );
@@ -43,7 +40,7 @@ describe("isSteamOpenIdSuccessUrl", () => {
       isSteamOpenIdSuccessUrl("https://store.steampowered.com/"),
       false
     );
-    assert.equal(isSteamOpenIdSuccessUrl("hydralauncher://run?game=1"), false);
+    assert.equal(isSteamOpenIdSuccessUrl("highhydra://run?game=1"), false);
     assert.equal(
       isSteamOpenIdSuccessUrl(
         "http://localhost:5173/?oauth_linked_provider=discord"
@@ -57,13 +54,13 @@ describe("parseSteamOpenIdReturn", () => {
   it("treats an already-linked Steam account as an error, not a success", () => {
     assert.deepEqual(
       parseSteamOpenIdReturn(
-        "hydralauncher://steam-connected?error=oauth-provider-already-linked"
+        "highhydra://steam-connected?error=oauth-provider-already-linked"
       ),
       { kind: "error", code: "already-linked" }
     );
     assert.equal(
       isSteamOpenIdSuccessUrl(
-        "hydralauncher://steam-connected?error=oauth-provider-already-linked"
+        "highhydra://steam-connected?error=oauth-provider-already-linked"
       ),
       false
     );
@@ -80,7 +77,7 @@ describe("parseSteamOpenIdReturn", () => {
 
   it("treats a steam-connected deep link with another error as generic", () => {
     assert.deepEqual(
-      parseSteamOpenIdReturn("hydralauncher://steam-connected?error=timeout"),
+      parseSteamOpenIdReturn("highhydra://steam-connected?error=timeout"),
       { kind: "error", code: "generic" }
     );
   });

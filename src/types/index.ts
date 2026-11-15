@@ -188,6 +188,7 @@ export interface StartGameDownloadPayload {
   uri: string;
   parts?: string[];
   downloadPath: string;
+  useHighball?: boolean;
   downloader: Downloader;
   automaticallyExtract: boolean;
   automaticallyDeleteArchiveFiles: boolean;

@@ -85,8 +85,12 @@ test(
   { skip: process.platform === "win32" },
   async (t) => {
     const f = await fixture(t);
-    await fs.mkdir(path.join(f.profile, "Saves"));
-    await fs.mkdir(path.join(f.profile, "SAVES"));
+    const profile = await fs.realpath(f.profile);
+    const readDirectory = fs.readdir;
+    // Model a case-sensitive directory even when the host filesystem is not.
+    t.mock.method(fs, "readdir", async (directory: string) =>
+      directory === profile ? ["Saves", "SAVES"] : readDirectory(directory)
+    );
     await assert.rejects(
       resolveLinuxEpicSavePath(path.join(f.profile, "saves")),
       /invalid-path/

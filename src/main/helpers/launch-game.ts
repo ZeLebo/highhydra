@@ -1,4 +1,6 @@
-import { shell } from "electron";
+import { resolveHighballGame } from "@main/services/highball-game";
+import { getHighballRunner } from "@main/services/highball-runner";
+import { dialog, shell } from "electron";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -627,6 +629,30 @@ const launchResolvedGame = async (
   useGamemode: boolean,
   shortcut: ExecutableShortcut | null = null
 ) => {
+  if (process.platform === "darwin" && isWindowsExecutable(parsedPath)) {
+    const game = await gamesSublevel.get(gameKey);
+    if (!game) throw new Error("Game not found");
+    const runner = await getHighballRunner();
+    const prefix = await runner.ensureBottle(gameKey);
+    await updateGameRecord(gameKey, () => ({ winePrefixPath: prefix }));
+    return runner.launch(
+      await resolveHighballGame({
+        ...game,
+        executablePath: parsedPath,
+        launchOptions,
+      }),
+      (error) => {
+        if (wasGameLauncherGameDetected(gameKey)) {
+          logger.warn("Highball game exited after a detected session", error);
+          return;
+        }
+        logger.error("Highball launch failed", error);
+        WindowManager.closeGameLauncherWindow();
+        dialog.showErrorBox("HighHydra", error.message);
+      }
+    );
+  }
+
   if (process.platform !== "linux") {
     return launchNatively(
       parsedPath,
@@ -1098,7 +1124,24 @@ export const launchGame = async (options: LaunchGameOptions) => {
     return null;
   }
 
-  return runWithCloudSaveLaunchGate(options.objectId, options.shop, () =>
-    launchGameWithCloudSaveChecks(options)
-  );
+  try {
+    return await runWithCloudSaveLaunchGate(
+      options.objectId,
+      options.shop,
+      () => launchGameWithCloudSaveChecks(options)
+    );
+  } catch (error) {
+    if (
+      process.platform !== "darwin" ||
+      !isWindowsExecutable(options.executablePath)
+    )
+      throw error;
+    logger.error("Highball launch failed", error);
+    WindowManager.closeGameLauncherWindow();
+    dialog.showErrorBox(
+      "HighHydra",
+      error instanceof Error ? error.message : String(error)
+    );
+    return null;
+  }
 };

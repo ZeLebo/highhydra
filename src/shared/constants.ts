@@ -121,7 +121,7 @@ export const LINUX_GAME_EXECUTABLE_EXTENSIONS = [
   "bin",
 ];
 
-export const DARWIN_GAME_EXECUTABLE_EXTENSIONS = ["app"];
+export const DARWIN_GAME_EXECUTABLE_EXTENSIONS = ["app", "exe"];
 
 export const getGameExecutableFilters = (
   platform: string,

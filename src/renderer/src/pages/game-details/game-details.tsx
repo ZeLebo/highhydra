@@ -108,7 +108,8 @@ export default function GameDetails() {
             fileIndices?: number[],
             selectedFilesSize?: number | null,
             automaticallyDeleteArchiveFiles = false,
-            signal?: AbortSignal
+            signal?: AbortSignal,
+            useHighball?: boolean
           ) => {
             const uri = selectRepackUri(repack, downloader);
             const payload = {
@@ -117,6 +118,7 @@ export default function GameDetails() {
               downloader,
               shop: downloadGame?.shop ?? game?.shop ?? shop,
               downloadPath,
+              useHighball,
               uri,
               parts: getRepackUriParts(repack, uri),
               automaticallyExtract,

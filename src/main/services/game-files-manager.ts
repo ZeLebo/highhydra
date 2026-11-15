@@ -1,6 +1,8 @@
+import { resolveHighballGame } from "@main/services/highball-game";
 import { ASSETS_PATH } from "@main/constants";
 import { getGameAssets } from "@main/events/catalogue/get-game-assets";
 import { getDirectorySize } from "@main/events/helpers/get-directory-size";
+import { getHighballRunner } from "./highball-runner";
 import { findGameExecutableInFolder } from "@main/helpers/find-game-executable";
 import { findDownloadInstaller } from "@main/helpers/find-game-installer";
 import {
@@ -898,6 +900,8 @@ export class GameFilesManager {
 
       if (!download || !game) return false;
       if (game.executablePath) return true;
+      if (process.platform === "darwin" && download.useHighball === false)
+        return false;
 
       const executables = GameExecutables.getExecutablesForGame(this.objectId);
 
@@ -991,6 +995,16 @@ export class GameFilesManager {
   }
 
   private async bindExecutable(executablePath: string): Promise<boolean> {
+    if (
+      process.platform === "darwin" &&
+      executablePath.toLowerCase().endsWith(".exe")
+    ) {
+      const game = await gamesSublevel.get(this.gameKey);
+      if (!game) return false;
+      await (
+        await getHighballRunner()
+      ).registerGame(await resolveHighballGame({ ...game, executablePath }));
+    }
     let bound = false;
 
     const updatedGame = await updateGameRecord(this.gameKey, (current) => {

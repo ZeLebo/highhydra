@@ -272,7 +272,7 @@ function buildMaps(processes) {
       cwd: proc.cwd,
       startTime: proc.startTime,
       invocationId: proc.invocationId,
-      winePrefixPath: proc.winePrefixPath,
+      winePrefixPath: proc.winePrefixPath || (platform === "darwin" && proc.environ && proc.environ.WINEPREFIX) || undefined,
       peExecutablePath: proc.peExecutablePath,
       inspectionComplete: proc.inspectionComplete,
     });

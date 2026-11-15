@@ -1,3 +1,6 @@
+import { prepareHighballDownload } from "@main/helpers/prepare-highball-download";
+import { dialog } from "electron";
+import { HighballError } from "@main/services/highball-runner";
 import { registerEvent } from "../register-event";
 import type { Download, StartGameDownloadPayload } from "@types";
 import {
@@ -26,6 +29,7 @@ const startGameDownload = async (
     title,
     shop,
     downloadPath,
+    useHighball,
     downloader,
     uri,
     parts,
@@ -54,6 +58,7 @@ const startGameDownload = async (
       progress: 0,
       bytesDownloaded: 0,
       downloadPath,
+      useHighball,
       downloader,
       uri,
       parts: await getMultipartDownloadParts(uri, parts, downloader),
@@ -76,6 +81,7 @@ const startGameDownload = async (
       await DownloadOrchestrator.validateDownloadOrMarkPending(download);
     }
     await prepareGameEntry({ gameKey, title, objectId, shop });
+    await prepareHighballDownload(download);
     await DownloadManager.cancelDownload(gameKey).catch(() => null);
     await downloadsSublevel.put(gameKey, download);
     didWriteDownload = true;
@@ -98,6 +104,8 @@ const startGameDownload = async (
 
     return { ok: true };
   } catch (err: unknown) {
+    if (err instanceof HighballError)
+      dialog.showErrorBox("HighHydra", err.message);
     if (didWriteDownload) {
       await DownloadManager.cancelDownload(gameKey).catch(() => null);
       await downloadsSublevel.del(gameKey).catch(() => null);

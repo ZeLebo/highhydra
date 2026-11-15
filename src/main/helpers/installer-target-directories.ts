@@ -126,7 +126,12 @@ const getWindowsTargetDirectories = (downloadPath: string) => {
 const getWinePrefixTargetDirectories = (winePrefixPath: string | null) => {
   const prefixes = unique([
     winePrefixPath,
-    process.env.WINEPREFIX ?? path.join(SystemPath.getPath("home"), ".wine"),
+    ...(process.platform === "darwin"
+      ? []
+      : [
+          process.env.WINEPREFIX ??
+            path.join(SystemPath.getPath("home"), ".wine"),
+        ]),
   ]);
 
   return prefixes.flatMap((prefix) =>
@@ -144,7 +149,7 @@ export const getInstallerTargetDirectories = (
     return getWindowsTargetDirectories(downloadPath);
   }
 
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     return getWinePrefixTargetDirectories(winePrefixPath);
   }
 

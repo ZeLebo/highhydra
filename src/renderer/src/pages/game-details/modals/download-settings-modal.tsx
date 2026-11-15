@@ -74,7 +74,8 @@ export interface DownloadSettingsModalProps {
     fileIndices?: number[],
     selectedFilesSize?: number | null,
     automaticallyDeleteArchiveFiles?: boolean,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    useHighball?: boolean
   ) => Promise<{ ok: boolean; error?: string }>;
   repack: GameRepack | null;
 }
@@ -281,6 +282,10 @@ export function DownloadSettingsModal({
   const { t } = useTranslation("game_details");
 
   const { game, shopDetails, shop } = useContext(gameDetailsContext);
+  const supportsHighball =
+    globalThis.electron.platform === "darwin" && shop !== "launchbox";
+  const [useHighball, setUseHighball] = useState(true);
+  const highballDownload = supportsHighball && useHighball;
 
   const emulatorSystem = useMemo(() => {
     if (shop !== "launchbox") return null;
@@ -421,7 +426,11 @@ export function DownloadSettingsModal({
 
       if (cancelled) return;
 
-      if (romPath) {
+      if (highballDownload) {
+        const highballHome =
+          await globalThis.electron.getDefaultDownloadsPath(shop);
+        if (!cancelled) setSelectedPath(highballHome);
+      } else if (romPath) {
         setSelectedPath(romPath);
       } else if (userPreferences?.downloadsPath) {
         setSelectedPath(userPreferences.downloadsPath);
@@ -432,7 +441,9 @@ export function DownloadSettingsModal({
       }
     };
 
-    void resolveDefaultPath();
+    void resolveDefaultPath().catch((error) =>
+      showErrorToast(t("download_error"), String(error.message))
+    );
 
     const availableDownloaders = downloadOptions
       .filter((option) => option.isAvailable)
@@ -444,6 +455,10 @@ export function DownloadSettingsModal({
       cancelled = true;
     };
   }, [
+    highballDownload,
+    showErrorToast,
+    t,
+    shop,
     userPreferences?.downloadsPath,
     downloadOptions,
     emulatorSystem,
@@ -951,7 +966,8 @@ export function DownloadSettingsModal({
         selectedFileIndices,
         totalSelectedSize,
         deleteArchiveFilesAfterExtraction,
-        abortController.signal
+        abortController.signal,
+        highballDownload
       );
 
       if (
@@ -1251,6 +1267,15 @@ export function DownloadSettingsModal({
       onClose={handleCloseModal}
     >
       <div className="download-settings-modal__container">
+        {supportsHighball && (
+          <CheckboxField
+            label={t("use_highball")}
+            checked={useHighball}
+            disabled={downloadStarting}
+            onChange={() => setUseHighball(!useHighball)}
+          />
+        )}
+
         <div className="download-settings-modal__downloads-path-field">
           <span>{t("downloader")}</span>
 
@@ -1435,14 +1460,16 @@ export function DownloadSettingsModal({
             value={selectedPath}
             readOnly
             disabled
-            label={t("download_path")}
+            label={
+              highballDownload ? t("highball_library") : t("download_path")
+            }
             error={getDownloadPathError()}
             rightContent={
               <Button
                 className="download-settings-modal__change-path-button"
                 theme="outline"
                 onClick={handleChooseDownloadsPath}
-                disabled={downloadStarting}
+                disabled={downloadStarting || highballDownload}
               >
                 {t("change")}
               </Button>
@@ -1450,9 +1477,13 @@ export function DownloadSettingsModal({
           />
 
           <p className="download-settings-modal__hint-text">
-            <Trans i18nKey="select_folder_hint" ns="game_details">
-              <Link to="/settings" />
-            </Trans>
+            {highballDownload ? (
+              t("highball_bottle_hint")
+            ) : (
+              <Trans i18nKey="select_folder_hint" ns="game_details">
+                <Link to="/settings" />
+              </Trans>
+            )}
           </p>
         </div>
 

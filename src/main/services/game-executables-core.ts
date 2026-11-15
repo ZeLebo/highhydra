@@ -19,7 +19,8 @@ export const normalizeGameExecutableCatalog = (
       objectId,
       executables
         .filter((executable) => {
-          if (platform === "win32") return executable.os === "win32";
+          if (platform === "win32" || platform === "darwin")
+            return executable.os === "win32";
           if (platform === "linux") {
             return executable.os === "linux" || executable.os === "win32";
           }

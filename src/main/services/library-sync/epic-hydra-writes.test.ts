@@ -32,7 +32,7 @@ const base: Game = {
   hasActiveEpicImport: true,
   favorite: true,
 };
-function fixture() {
+function fixture(platform: NodeJS.Platform = process.platform) {
   const state = {
     game: { ...base },
     others: [] as Game[],
@@ -47,6 +47,7 @@ function fixture() {
     managedEpicSession: false,
     legacySavesEnabled: false,
     cloudUploads: 0,
+    detectedGames: [] as string[],
     lifecycleErrors: [] as unknown[],
     calls: [] as { method: string; body: unknown }[],
   };
@@ -136,7 +137,7 @@ function fixture() {
           dependencies[name] ?? assert.fail(`Unexpected dependency ${name}`),
         Date,
         Math,
-        process,
+        process: { ...process, platform },
         performance: { now: () => state.now },
       }
     );
@@ -165,6 +166,11 @@ function fixture() {
     }>(
       "../process-watcher.ts",
       {
+        "@main/services/highball-runner": {
+          highballBottleName: () => "HighHydra-fixture",
+          getHighballRunner: async () =>
+            assert.fail("No Highball session in this fixture"),
+        },
         "./library-sync/library-write-queue": queue,
         "./library-sync": {
           createGame: sync.create,
@@ -257,7 +263,10 @@ function fixture() {
         "./wine": {},
         "./native-addon": {},
         "./emulators/emulator-session-tracker": {},
-        "./game-launcher-status": { markGameLauncherGameDetected: () => {} },
+        "./game-launcher-status": {
+          markGameLauncherGameDetected: (gameKey: string) =>
+            state.detectedGames.push(gameKey),
+        },
         "./process-watcher-scan": {},
         "./linux-process-match": {},
         "@main/helpers/windows-batch-command": {},
@@ -603,3 +612,21 @@ test("a queued batch rereads the Hydra reset rather than uploading its old absol
   );
   assert.equal(f.state.game.epicPlayTimeInMilliseconds, 3000);
 });
+
+for (const platform of ["darwin", "linux", "win32"] as const) {
+  test(`a detected ${platform} game records successful startup before closing`, async () => {
+    const f = fixture(platform);
+    const watcher = f.watcher();
+    try {
+      await watcher.onOpenGame({ ...f.state.game }, "game.exe");
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      await queue.libraryWriteQueue.drain();
+      assert.deepEqual(f.state.detectedGames, [key]);
+      await watcher.onCloseGame({ ...f.state.game });
+      await queue.libraryWriteQueue.drain();
+      assert.deepEqual(f.state.detectedGames, [key]);
+    } finally {
+      running.clearGamesPlaytimeState();
+    }
+  });
+}

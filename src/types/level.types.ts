@@ -133,6 +133,7 @@ export interface Download {
   parts?: string[];
   folderName: string | null;
   downloadPath: string;
+  useHighball?: boolean;
   progress: number;
   downloader: Downloader;
   bytesDownloaded: number;

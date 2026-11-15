@@ -1,18 +1,7 @@
-import { app } from "electron";
 import { registerEvent } from "../register-event";
-import updater from "electron-updater";
-
-const { autoUpdater } = updater;
 
 export const restartAndInstallUpdate = () => {
-  autoUpdater.removeAllListeners();
-  if (app.isPackaged) {
-    autoUpdater.quitAndInstall(false);
-  }
+  throw new Error("HighHydra updates are installed manually.");
 };
 
-const restartAndInstallUpdateEvent = async (
-  _event: Electron.IpcMainInvokeEvent
-) => restartAndInstallUpdate();
-
-registerEvent("restartAndInstallUpdate", restartAndInstallUpdateEvent);
+registerEvent("restartAndInstallUpdate", restartAndInstallUpdate);

@@ -1,3 +1,7 @@
+import {
+  getHighballRunner,
+  highballBottleName,
+} from "@main/services/highball-runner";
 import { registerEvent } from "../register-event";
 import { emulators, launchedGamePids, logger, Wine } from "@main/services";
 import sudo from "sudo-prompt";
@@ -35,11 +39,17 @@ const closeGame = async (
     }
   }
 
-  const processes = await NativeAddon.listProcesses();
-
-  const game = await gamesSublevel.get(levelKeys.game(shop, objectId));
-
+  const gameKey = levelKeys.game(shop, objectId);
+  const game = await gamesSublevel.get(gameKey);
   if (!game) return;
+  if (
+    process.platform === "darwin" &&
+    path.basename(game.winePrefixPath ?? "") === highballBottleName(gameKey)
+  ) {
+    await (await getHighballRunner()).stop(gameKey);
+    return;
+  }
+  const processes = await NativeAddon.listProcesses();
 
   const launchedPid = launchedGamePids.get(levelKeys.game(shop, objectId));
   const trackingPaths = game.trackingExecutablePaths?.filter(Boolean) ?? [];

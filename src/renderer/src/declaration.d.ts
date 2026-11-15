@@ -1232,7 +1232,7 @@ declare global {
     getAppSessionId: () => Promise<string>;
     isStaging: () => Promise<boolean>;
     ping: () => string;
-    getDefaultDownloadsPath: () => Promise<string>;
+    getDefaultDownloadsPath: (shop?: GameShop) => Promise<string>;
     getScreenshotsPath: () => Promise<string>;
     getScreenshotsFolderPath: () => Promise<string>;
     getLocalScreenshots: () => Promise<LocalScreenshot[]>;

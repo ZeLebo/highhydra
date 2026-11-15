@@ -1,3 +1,5 @@
+import { resolveHighballGame } from "@main/services/highball-game";
+import { getHighballRunner } from "@main/services/highball-runner";
 import { updateGameRecord } from "@main/services/game-record-updater";
 import { registerEvent } from "../register-event";
 import { parseExecutablePath } from "../helpers/parse-executable-path";
@@ -27,6 +29,17 @@ const updateExecutablePath = async (
 
   const game = await gamesSublevel.get(gameKey);
   if (!game) return;
+  if (
+    process.platform === "darwin" &&
+    parsedPath?.toLowerCase().endsWith(".exe")
+  ) {
+    const { prefix } = await (
+      await getHighballRunner()
+    ).registerGame(
+      await resolveHighballGame({ ...game, executablePath: parsedPath })
+    );
+    await updateGameRecord(gameKey, () => ({ winePrefixPath: prefix }));
+  }
   const environmentChanged =
     parsedPath !== null && game.executablePath !== parsedPath;
 

@@ -5,12 +5,14 @@ import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build } from "esbuild";
+import type { Download } from "@types";
 
 type FindGameInstaller = (folderPath: string) => Promise<string | null>;
 type ListArchiveVolumes = (archivePath: string) => Promise<string[]>;
 
 let root: string;
 let findGameInstaller: FindGameInstaller;
+let findDownloadInstaller: (download: Download) => Promise<string | null>;
 let listArchiveVolumes: ListArchiveVolumes;
 
 const createLayout = async (name: string, files: string[]) => {
@@ -68,9 +70,8 @@ before(async () => {
     ],
   });
 
-  ({ findGameInstaller, listArchiveVolumes } = await import(
-    pathToFileURL(bundlePath).href
-  ));
+  ({ findGameInstaller, findDownloadInstaller, listArchiveVolumes } =
+    await import(pathToFileURL(bundlePath).href));
 });
 
 after(async () => {
@@ -78,6 +79,16 @@ after(async () => {
 });
 
 describe("findGameInstaller", () => {
+  it("finds the downloaded setup on the current host, including macOS", async () => {
+    const folder = await createLayout("downloaded", ["setup.exe"]);
+    assert.equal(
+      await findDownloadInstaller({
+        downloadPath: path.dirname(folder),
+        folderName: path.basename(folder),
+      } as Download),
+      path.join(folder, "setup.exe")
+    );
+  });
   it("finds setup.exe at the top of the folder", async () => {
     assert.equal(
       await installerIn("top", ["setup.exe", "data1.bin"]),

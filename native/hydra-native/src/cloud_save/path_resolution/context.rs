@@ -155,7 +155,8 @@ pub fn build_context(input: &ResolveSaveRulesInput) -> Result<PathResolutionCont
         .then(|| input.steam_path.as_deref().map(normalize_separators))
         .flatten()
         .filter(|root| derived_steam_root.as_ref() != Some(root));
-    let windows_compatibility = input.platform == "linux"
+    let windows_compatibility = (input.platform == "linux"
+        || (input.platform == "mac" && wine_prefix_path.is_some()))
         && input
             .executable_path
             .as_deref()
@@ -185,4 +186,31 @@ pub fn build_context(input: &ResolveSaveRulesInput) -> Result<PathResolutionCont
         configured_steam_root,
         store_user_id: None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mac_windows_executable_uses_only_its_configured_prefix() {
+        let mut input = ResolveSaveRulesInput {
+            shop: "steam".into(),
+            object_id: "10".into(),
+            platform: "mac".into(),
+            home_dir: "/Users/fixture".into(),
+            documents_dir: None,
+            app_data_dir: None,
+            executable_path: Some("/bottle/drive_c/Games/Game.exe".into()),
+            wine_prefix_path: Some("/bottle".into()),
+            steam_path: None,
+            rules: Vec::new(),
+        };
+        assert!(build_context(&input).unwrap().windows_compatibility);
+        input.wine_prefix_path = None;
+        assert!(!build_context(&input).unwrap().windows_compatibility);
+        input.wine_prefix_path = Some("/bottle".into());
+        input.executable_path = Some("/Applications/Game.app/Contents/MacOS/Game".into());
+        assert!(!build_context(&input).unwrap().windows_compatibility);
+    }
 }

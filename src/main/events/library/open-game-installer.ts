@@ -1,3 +1,5 @@
+import { getHighballRunner } from "@main/services/highball-runner";
+import { updateGameRecord } from "@main/services/game-record-updater";
 import { shell } from "electron";
 import fs from "node:fs";
 import path from "node:path";
@@ -26,6 +28,7 @@ import {
 } from "@main/helpers/installed-executable-poller";
 
 interface InstallerLaunchOptions {
+  gameKey: string;
   gameId?: string;
   winePrefixPath?: string | null;
   protonPath?: string | null;
@@ -325,6 +328,13 @@ const executeGameInstaller = async (
     return await executeLinuxInstaller(filePath, options);
   }
 
+  if (process.platform === "darwin") {
+    await (
+      await getHighballRunner()
+    ).runInstaller(options.gameKey, filePath, options.onExit);
+    return trackedLaunch(filePath, "with Highball");
+  }
+
   return await openUntracked(filePath);
 };
 
@@ -432,10 +442,18 @@ const openGameInstaller = async (
   const gameKey = levelKeys.game(shop, objectId);
   const download = await downloadsSublevel.get(gameKey);
   const game = await gamesSublevel.get(gameKey).catch(() => null);
-  const winePrefixPath = Wine.getEffectivePrefixPath(
-    game?.winePrefixPath,
-    objectId
-  );
+  if (process.platform === "darwin" && download?.useHighball === false) {
+    const folder = await getDownloadFolderPath(download);
+    if (folder) await shell.openPath(folder);
+    return true;
+  }
+  const winePrefixPath =
+    process.platform === "darwin"
+      ? await (await getHighballRunner()).ensureBottle(gameKey)
+      : Wine.getEffectivePrefixPath(game?.winePrefixPath, objectId);
+  if (process.platform === "darwin" && game) {
+    await updateGameRecord(gameKey, () => ({ winePrefixPath }));
+  }
 
   const gamePath = download ? await getDownloadFolderPath(download) : null;
 
@@ -484,6 +502,7 @@ const openGameInstaller = async (
   };
 
   const launchResult = await executeGameInstaller(installerPath, {
+    gameKey,
     gameId: objectId,
     winePrefixPath,
     protonPath: game?.protonPath,

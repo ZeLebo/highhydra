@@ -152,6 +152,10 @@ const build = async () => {
   const cargoArgs = [
     "build",
     "--release",
+    // Rust's strip pass can misalign Mach-O LINKEDIT (rust-lang/rust#157750).
+    ...(process.platform === "darwin"
+      ? ["--config", 'profile.release.strip="none"']
+      : []),
     ...(target ? ["--target", target] : []),
     "--manifest-path",
     manifestPath,

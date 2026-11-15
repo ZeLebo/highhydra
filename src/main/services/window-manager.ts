@@ -1157,8 +1157,9 @@ export class WindowManager {
     contents: Electron.WebContents,
     closeWindow: () => void
   ) {
-    contents.on("will-navigate", (_event, url) => {
+    contents.on("will-navigate", (event, url) => {
       if (url.startsWith("hydralauncher://auth")) {
+        event.preventDefault();
         closeWindow();
 
         HydraApi.handleExternalAuth(url);
@@ -1166,6 +1167,7 @@ export class WindowManager {
       }
 
       if (url.startsWith("hydralauncher://update-account")) {
+        event.preventDefault();
         closeWindow();
 
         WindowManager.sendToAppWindows("on-account-updated");
@@ -1317,7 +1319,7 @@ export class WindowManager {
     const connectionWindow = new BrowserWindow({
       width: layout.width,
       height: layout.height,
-      title: "Hydra",
+      title: "HighHydra",
       backgroundColor: "#1c1c1c",
       parent: parentWindow,
       modal: true,

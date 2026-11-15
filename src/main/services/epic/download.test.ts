@@ -223,6 +223,7 @@ async function fixture(
       return game;
     },
     platform,
+    architecture: "x64",
   });
   const service = new EpicDownloadService({
     platform,

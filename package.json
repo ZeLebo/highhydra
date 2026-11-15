@@ -1,12 +1,12 @@
 {
-  "name": "hydralauncher",
+  "name": "highhydra",
   "version": "4.4.1",
-  "description": "Hydra",
+  "description": "HighHydra",
   "main": "./out/main/index.js",
   "author": "Los Broxas",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hydralauncher/hydra.git"
+    "url": "https://github.com/ZeLebo/highhydra.git"
   },
   "type": "module",
   "engines": {
