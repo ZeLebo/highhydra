@@ -1,6 +1,6 @@
 import type { SteamConnectErrorCode } from "@types";
 
-export const STEAM_CONNECTED_DEEP_LINK = "highhydra://steam-connected";
+export const STEAM_CONNECTED_DEEP_LINK = "hydraball://steam-connected";
 
 export type SteamOpenIdReturn =
   | { kind: "success" }
@@ -18,7 +18,7 @@ export const completeSteamOpenIdConnection = ({
 };
 
 const isSteamConnectedDeepLink = (url: URL) =>
-  url.protocol === "highhydra:" && url.hostname === "steam-connected";
+  url.protocol === "hydraball:" && url.hostname === "steam-connected";
 
 const readErrorParam = (url: URL): string | null => {
   const value =

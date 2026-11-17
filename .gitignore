@@ -35,3 +35,5 @@ src/renderer/public/*.local/
 # Local handoff and diagnostic artifacts
 /context.md
 /.venv/
+/docs/history/
+/docs/hydraball-rename-plan.md

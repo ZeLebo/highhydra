@@ -648,7 +648,7 @@ const launchResolvedGame = async (
         }
         logger.error("Highball launch failed", error);
         WindowManager.closeGameLauncherWindow();
-        dialog.showErrorBox("HighHydra", error.message);
+        dialog.showErrorBox("Hydraball", error.message);
       }
     );
   }
@@ -1139,7 +1139,7 @@ export const launchGame = async (options: LaunchGameOptions) => {
     logger.error("Highball launch failed", error);
     WindowManager.closeGameLauncherWindow();
     dialog.showErrorBox(
-      "HighHydra",
+      "Hydraball",
       error instanceof Error ? error.message : String(error)
     );
     return null;

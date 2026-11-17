@@ -86,7 +86,7 @@ i18n.init({
   },
 });
 
-const PROTOCOL = "highhydra";
+const PROTOCOL = "hydraball";
 
 // Register the custom schemes as privileged so the renderer can fetch them
 // (supportFetchAPI) and use the results on a canvas without tainting it
@@ -114,7 +114,7 @@ if (process.defaultApp) {
 
 const initializeApp = async () => {
   refreshPortableShortcutLauncher();
-  electronApp.setAppUserModelId("local.highhydra.launcher");
+  electronApp.setAppUserModelId("local.hydraball.launcher");
 
   logger.info("Crash dumps directory", app.getPath("crashDumps"));
 

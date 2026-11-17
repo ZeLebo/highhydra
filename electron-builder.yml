@@ -1,9 +1,9 @@
-appId: local.highhydra.launcher
-productName: HighHydra
+appId: local.hydraball.launcher
+productName: Hydraball
 protocols:
-  - name: HighHydra
+  - name: Hydraball
     schemes:
-      - highhydra
+      - hydraball
 beforePack: scripts/legendary-before-pack.cjs
 afterPack: scripts/legendary-after-pack.cjs
 afterSign: scripts/legendary-after-pack.cjs
@@ -139,7 +139,7 @@ linux:
   maintainer: electronjs.org
   category: Game
   mimeTypes:
-    - x-scheme-handler/highhydra
+    - x-scheme-handler/hydraball
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

@@ -30,7 +30,7 @@ after(async () => {
 
 async function fixture(t: TestContext) {
   const home = await fs.realpath(
-    await fs.mkdtemp(path.join(os.tmpdir(), "highhydra-runner-"))
+    await fs.mkdtemp(path.join(os.tmpdir(), "hydraball-runner-"))
   );
   t.after(() => fs.rm(home, { recursive: true, force: true }));
   const cli = path.join(home, "highball");
@@ -130,6 +130,36 @@ test("a stable Highball pin follows EXE changes and preserves other settings", a
   assert.equal(pin.renderer, "dxvk");
   assert.equal(pin.name, "My custom Highball title");
   assert.deepEqual(settings.futureSetting, { preserve: true });
+});
+
+test("a migrated uppercase pin UUID survives EXE changes and launcher restarts", async (t) => {
+  const { runner, home } = await fixture(t);
+  const game = {
+    shop: "steam",
+    objectId: "10",
+    title: "Migrated game",
+    highballPinId: "F97F779B-97A2-578E-8A5B-545D3F6E5104",
+  };
+  const { prefix, downloadPath } = await runner.prepareDownload(
+    runtime.highballGameKey(game)
+  );
+  const first = path.join(downloadPath, "Old.exe");
+  const second = path.join(downloadPath, "New.exe");
+  await fs.writeFile(first, "fixture");
+  await fs.writeFile(second, "fixture");
+  await runner.registerGame({ ...game, executablePath: first });
+  const restarted = new runtime.HighballRunner(runner.cliPath, home);
+  const result = await restarted.registerGame({
+    ...game,
+    executablePath: second,
+  });
+  const settings = JSON.parse(
+    await fs.readFile(path.join(prefix, "bottle.json"), "utf8")
+  );
+  assert.equal(result.pinId, game.highballPinId);
+  assert.equal(settings.pins.length, 1);
+  assert.equal(settings.pins[0].id, game.highballPinId);
+  assert.equal(settings.pins[0].path, "Games/Downloads/New.exe");
 });
 
 test("cross-bottle EXEs, symlink escapes and prefix overrides are rejected", async (t) => {

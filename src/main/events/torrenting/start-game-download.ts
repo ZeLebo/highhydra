@@ -105,7 +105,7 @@ const startGameDownload = async (
     return { ok: true };
   } catch (err: unknown) {
     if (err instanceof HighballError)
-      dialog.showErrorBox("HighHydra", err.message);
+      dialog.showErrorBox("Hydraball", err.message);
     if (didWriteDownload) {
       await DownloadManager.cancelDownload(gameKey).catch(() => null);
       await downloadsSublevel.del(gameKey).catch(() => null);

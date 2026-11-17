@@ -18,6 +18,7 @@ export interface HighballGame {
   launchOptions?: string | null;
   artworkTall?: string | null;
   artworkWide?: string | null;
+  highballPinId?: string;
 }
 
 interface Pin {
@@ -36,7 +37,7 @@ export const highballGameKey = (
 ) => `${game.shop}:${game.objectId}`;
 
 export const highballBottleName = (gameKey: string) =>
-  `HighHydra-${createHash("sha256").update(gameKey).digest("hex").slice(0, 24)}`;
+  `Hydraball-${createHash("sha256").update(gameKey).digest("hex").slice(0, 24)}`;
 
 export class HighballRunner {
   private readonly preparing = new Map<string, Promise<string>>();
@@ -134,9 +135,9 @@ export class HighballRunner {
     }
     const file = path.join(prefix, "bottle.json");
     const settings = JSON.parse(await fs.readFile(file, "utf8"));
-    const id = uuid(`highhydra:${gameKey}`, uuid.URL);
+    const id = game.highballPinId ?? uuid(`hydraball:${gameKey}`, uuid.URL);
     const existing = settings.pins.find(
-      (pin: Pin) => pin.id.toLowerCase() === id
+      (pin: Pin) => pin.id.toLowerCase() === id.toLowerCase()
     );
     const pin: Pin = {
       ...existing,
@@ -168,7 +169,7 @@ export class HighballRunner {
     if (
       settings.pins.some(
         (entry: Pin) =>
-          entry.id.toLowerCase() !== id &&
+          entry.id.toLowerCase() !== id.toLowerCase() &&
           entry.name.toLowerCase() === pin.name.toLowerCase()
       )
     ) {
@@ -179,7 +180,7 @@ export class HighballRunner {
     // bottle.json is Highball's shared Pin contract; preserve every other setting.
     if (JSON.stringify(existing) !== JSON.stringify(pin)) {
       settings.pins = settings.pins.filter(
-        (entry: Pin) => entry.id.toLowerCase() !== id
+        (entry: Pin) => entry.id.toLowerCase() !== id.toLowerCase()
       );
       settings.pins.push(pin);
       const temporary = `${file}.${randomUUID()}.tmp`;

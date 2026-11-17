@@ -167,7 +167,7 @@ function fixture(platform: NodeJS.Platform = process.platform) {
       "../process-watcher.ts",
       {
         "@main/services/highball-runner": {
-          highballBottleName: () => "HighHydra-fixture",
+          highballBottleName: () => "Hydraball-fixture",
           getHighballRunner: async () =>
             assert.fail("No Highball session in this fixture"),
         },

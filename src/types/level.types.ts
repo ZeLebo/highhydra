@@ -87,6 +87,8 @@ export interface Game extends LibraryCatalogueMetadata {
   collectionPositions?: Record<string, number>;
   isDeleted: boolean;
   winePrefixPath?: string | null;
+  /** Preserves a migrated Highball pin and its macOS game identity. */
+  highballPinId?: string;
   protonPath?: string | null;
   executablePath?: string | null;
   executablePathUpdatedAt?: Date | null;

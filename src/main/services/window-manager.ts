@@ -4,6 +4,8 @@ import { db, gamesSublevel, levelKeys } from "@main/level";
 import icon from "@resources/icon.png?asset";
 import trayIconDark from "@resources/tray-icon-dark.png?asset";
 import trayIcon from "@resources/tray-icon.png?asset";
+import trayIconMac from "@resources/tray-mac.png?asset";
+import trayIconMacRetina from "@resources/tray-mac@2x.png?asset";
 import {
   AUTH_WINDOW_CONTENT_HEIGHT,
   AUTH_WINDOW_CONTENT_WIDTH,
@@ -41,6 +43,7 @@ import {
 import { t } from "i18next";
 import { orderBy } from "lodash-es";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import UserAgent from "user-agents";
 import { HydraApi } from "./hydra-api";
 import { logger } from "./logger";
@@ -1319,7 +1322,7 @@ export class WindowManager {
     const connectionWindow = new BrowserWindow({
       width: layout.width,
       height: layout.height,
-      title: "HighHydra",
+      title: "Hydraball",
       backgroundColor: "#1c1c1c",
       parent: parentWindow,
       modal: true,
@@ -1585,9 +1588,12 @@ export class WindowManager {
     let tray: Tray;
 
     if (process.platform === "darwin") {
-      const macIcon = nativeImage
-        .createFromPath(trayIcon)
-        .resize({ width: 24, height: 24 });
+      const macIcon = nativeImage.createFromPath(trayIconMac);
+      macIcon.addRepresentation({
+        scaleFactor: 2,
+        buffer: readFileSync(trayIconMacRetina),
+      });
+      macIcon.setTemplateImage(true);
       tray = new Tray(macIcon);
     } else if (process.platform === "win32") {
       const getWindowsTrayIcon = () =>
