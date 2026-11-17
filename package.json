@@ -1,6 +1,6 @@
 {
   "name": "hydraball",
-  "version": "4.4.1",
+  "version": "4.4.2",
   "description": "Hydraball",
   "main": "./out/main/index.js",
   "author": "Los Broxas",
